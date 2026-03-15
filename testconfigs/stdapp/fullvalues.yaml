@@ -12,11 +12,6 @@ global:
       enabled: true
       data:
         GLOBAL_TEST: GLOBAL_VALUE
-  vault:
-    staticSecrets:
-      shared-secret:
-        enabled: true
-        path: "shared/vault/obj"
 
 deployment:
   replicaCount: 2
@@ -204,16 +199,6 @@ vaultAgent:
       enabled: true
 
   cluster: test-cluster
-
-vault:
-  staticSecrets:
-    global-example:
-      enabled: true
-      globalName: shared-secret
-      envKeys:
-      - envName: SHARED_PARAM
-        vaultKey: shared_key
-
 serviceAccount:
   enabled: true
   create: true
