@@ -1,10 +1,23 @@
 {{- $root := . }}
-{{- range $cmkey, $cmdata := .Values.configMaps }}
+{{- range $cmkey, $cmdata := .Values.global.configMaps }}
 {{- if $cmdata.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ printf "%s-%s" (include "stdapp.fullname" $root) $cmkey | trunc 63 | trimSuffix "-" }}
+  name: {{ include "stdapp.configMap.resourceName" (dict "root" $root "key" $cmkey) }}
+  labels:
+    {{- include "stdapp.labels" $root | nindent 4 }}
+data:
+  {{ toYaml $cmdata.data | nindent 2 }}
+---
+{{- end }}
+{{- end }}
+{{- range $cmkey, $cmdata := .Values.configMaps }}
+{{- if and $cmdata.enabled (not $cmdata.globalName) }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "stdapp.configMap.resourceName" (dict "root" $root "key" $cmkey) }}
   labels:
     {{- include "stdapp.labels" $root | nindent 4 }}
 data:

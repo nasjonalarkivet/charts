@@ -11,6 +11,16 @@ global:
     # repository: ""
     # tag: ""
     # pullSecret: ""
+  configMaps: {}
+    # shared-env:
+    #   enabled: true
+    #   data:
+    #     HELLO: WORLD
+  vault:
+    staticSecrets: {}
+      # shared-secret:
+      #   enabled: true
+      #   path: "some/vault/obj"
 
 deployment:
   replicaCount: 2
@@ -185,6 +195,10 @@ configMaps:
     data:
       HELLO: WORLD
     useAsEnv: True
+  example-global-envs:
+    enabled: False
+    globalName: shared-env
+    useAsEnv: True
 emptyDirs:
   example-dir:
     enabled: False
@@ -240,6 +254,12 @@ vault:
       # override defaults like
       # rolloutRestart: False
       # mount: "y"
+    example-global:
+      enabled: False
+      globalName: shared-secret
+      envKeys:
+      - envName: SHARED_PARAM
+        vaultKey: name_in_vault
 
 serviceAccount:
   enabled: False

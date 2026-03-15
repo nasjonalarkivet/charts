@@ -2,4 +2,4 @@ apiVersion: v2
 name: stdapp
 description: A generic opinionated standard configuration for kubernetes deployments
 type: application
-version: 0.0.7
+version: 0.0.8
