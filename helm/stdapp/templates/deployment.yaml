@@ -33,7 +33,7 @@ spec:
         {{- range $name, $annotation := .Values.pod.annotations }}
         {{ $name }}: {{ $annotation | quote }}
         {{- end }}
-        {{- if include "stdapp.kv.enabled" .Values.configMaps }}
+        {{- if or (include "stdapp.kv.enabled" .Values.configMaps) (include "stdapp.global.kv.enabled" .Values.global.configMaps) }}
         checksum/config: {{ include (print $.Template.BasePath "/config_map.yaml") . | sha256sum }}
         {{- end }}
         
@@ -85,7 +85,7 @@ spec:
             - name: {{ .envName | quote }}
               valueFrom:
                 secretKeyRef:
-                  name: {{ printf "%s-%s" (include "stdapp.fullname" $root) $vkey | trunc 63 | trimSuffix "-" }}
+                  name: {{ include "stdapp.vaultStaticSecret.refName" (dict "root" $root "key" $vkey "data" $vdata) }}
                   key: {{ .vaultKey | quote }}
             {{- end }}
             {{- end }}
@@ -94,7 +94,7 @@ spec:
           {{- range $cmkey, $cmdata := .Values.configMaps }}
           {{- if (and $cmdata.enabled $cmdata.useAsEnv) }}
           - configMapRef:
-              name: {{ printf "%s-%s" (include "stdapp.fullname" $root) $cmkey | trunc 63 | trimSuffix "-" }}
+              name: {{ include "stdapp.configMap.refName" (dict "root" $root "key" $cmkey "data" $cmdata) }}
           {{- end }}
           {{- end }}
           volumeMounts:
@@ -148,7 +148,7 @@ spec:
         {{- if (and $cmdata.enabled $cmdata.mountPath) }}
         - name: {{ $cmkey }}
           configMap:
-            name: {{ printf "%s-%s" (include "stdapp.fullname" $root) $cmkey | trunc 63 | trimSuffix "-" }}
+            name: {{ include "stdapp.configMap.refName" (dict "root" $root "key" $cmkey "data" $cmdata) }}
         {{- end }}
         {{- end }}
         {{- range $edkey, $eddata := .Values.emptyDirs }}
@@ -185,4 +185,3 @@ spec:
           {{- end }}
         {{- end }}
         {{- end }}
-

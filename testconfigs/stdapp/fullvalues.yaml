@@ -7,6 +7,11 @@ global:
     # repository: ""
     # tag: ""
     # pullSecret: ""
+  configMaps:
+    shared-env:
+      enabled: true
+      data:
+        GLOBAL_TEST: GLOBAL_VALUE
 
 deployment:
   replicaCount: 2
@@ -157,6 +162,10 @@ configMaps:
     data:
       TEST: TEST
     useAsEnv: True
+  global-env-overrides:
+    enabled: true
+    globalName: shared-env
+    useAsEnv: true
 emptyDirs:
   log:
     enabled: true
@@ -190,7 +199,6 @@ vaultAgent:
       enabled: true
 
   cluster: test-cluster
-
 serviceAccount:
   enabled: true
   create: true

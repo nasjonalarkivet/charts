@@ -72,6 +72,81 @@ Check if any kv is enabled
 {{- end -}}
 {{- end -}}
 
+{{/*
+Check if any global kv is enabled
+*/}}
+{{- define "stdapp.global.kv.enabled" -}}
+{{- range $k, $v := . -}}
+{{- if $v.enabled -}}
+"true"
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Resolve a chart-managed ConfigMap resource name
+*/}}
+{{- define "stdapp.configMap.resourceName" -}}
+{{- $root := .root -}}
+{{- $key := .key -}}
+{{- printf "%s-%s" (include "stdapp.fullname" $root) $key | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*
+Resolve the ConfigMap name used by the workload for a service configMap spec.
+Falls back to a local chart-managed configMap if no global alias is set.
+*/}}
+{{- define "stdapp.configMap.refName" -}}
+{{- $root := .root -}}
+{{- $key := .key -}}
+{{- $data := .data -}}
+{{- if $data.globalName -}}
+{{- $global := index $root.Values.global.configMaps $data.globalName -}}
+{{- if not $global -}}
+{{- fail (printf "configMaps.%s.globalName references missing global.configMaps.%s" $key $data.globalName) -}}
+{{- end -}}
+{{- if not $global.enabled -}}
+{{- fail (printf "configMaps.%s.globalName references disabled global.configMaps.%s" $key $data.globalName) -}}
+{{- end -}}
+{{- include "stdapp.configMap.resourceName" (dict "root" $root "key" $data.globalName) -}}
+{{- else -}}
+{{- include "stdapp.configMap.resourceName" (dict "root" $root "key" $key) -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Resolve a chart-managed VaultStaticSecret resource/secret name
+*/}}
+{{- define "stdapp.vaultStaticSecret.resourceName" -}}
+{{- $root := .root -}}
+{{- $key := .key -}}
+{{- printf "%s-%s" (include "stdapp.fullname" $root) $key | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*
+Resolve the generated Kubernetes Secret name used by the workload for a vault static secret spec.
+Falls back to a local chart-managed secret if no global alias is set.
+*/}}
+{{- define "stdapp.vaultStaticSecret.refName" -}}
+{{- $root := .root -}}
+{{- $key := .key -}}
+{{- $data := .data -}}
+{{- if $data.globalName -}}
+{{- $globalVault := default dict $root.Values.global.vault -}}
+{{- $globalSecrets := default dict $globalVault.staticSecrets -}}
+{{- $global := index $globalSecrets $data.globalName -}}
+{{- if not $global -}}
+{{- fail (printf "vault.staticSecrets.%s.globalName references missing global.vault.staticSecrets.%s" $key $data.globalName) -}}
+{{- end -}}
+{{- if not $global.enabled -}}
+{{- fail (printf "vault.staticSecrets.%s.globalName references disabled global.vault.staticSecrets.%s" $key $data.globalName) -}}
+{{- end -}}
+{{- include "stdapp.vaultStaticSecret.resourceName" (dict "root" $root "key" $data.globalName) -}}
+{{- else -}}
+{{- include "stdapp.vaultStaticSecret.resourceName" (dict "root" $root "key" $key) -}}
+{{- end -}}
+{{- end -}}
+
 
 {{/*
 Render image
