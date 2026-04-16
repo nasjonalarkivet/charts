@@ -33,7 +33,7 @@ spec:
         {{- range $name, $annotation := .Values.pod.annotations }}
         {{ $name }}: {{ $annotation | quote }}
         {{- end }}
-        {{- if or (include "stdapp.kv.enabled" .Values.configMaps) (include "stdapp.global.kv.enabled" .Values.global.configMaps) }}
+        {{- if include "stdapp.configMap.anyEnabled" . }}
         checksum/config: {{ include (print $.Template.BasePath "/config_map.yaml") . | sha256sum }}
         {{- end }}
         
