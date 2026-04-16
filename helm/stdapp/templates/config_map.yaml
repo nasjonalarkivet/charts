@@ -1,6 +1,6 @@
 {{- $root := . }}
 {{- range $cmkey, $cmdata := .Values.global.configMaps }}
-{{- if $cmdata.enabled }}
+{{- if and $cmdata.enabled (include "stdapp.configMap.isReferenced" (dict "root" $root "globalName" $cmkey)) }}
 apiVersion: v1
 kind: ConfigMap
 metadata:

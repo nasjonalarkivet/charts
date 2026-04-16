@@ -84,6 +84,34 @@ Check if any global kv is enabled
 {{- end -}}
 
 {{/*
+Check if a global ConfigMap is referenced by any enabled local configMap entry
+*/}}
+{{- define "stdapp.configMap.isReferenced" -}}
+{{- $root := .root -}}
+{{- $globalName := .globalName -}}
+{{- range $key, $value := $root.Values.configMaps -}}
+{{- if and $value.enabled (eq $value.globalName $globalName) -}}
+"true"
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Check if any configMap resources will be rendered for this release
+*/}}
+{{- define "stdapp.configMap.anyEnabled" -}}
+{{- $root := . -}}
+{{- range $key, $value := $root.Values.configMaps -}}
+{{- if and $value.enabled (not $value.globalName) -}}
+"true"
+{{- end -}}
+{{- if and $value.enabled $value.globalName -}}
+{{- include "stdapp.configMap.isReferenced" (dict "root" $root "globalName" $value.globalName) -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Resolve a chart-managed ConfigMap resource name
 */}}
 {{- define "stdapp.configMap.resourceName" -}}
@@ -101,7 +129,8 @@ Falls back to a local chart-managed configMap if no global alias is set.
 {{- $key := .key -}}
 {{- $data := .data -}}
 {{- if $data.globalName -}}
-{{- $global := index $root.Values.global.configMaps $data.globalName -}}
+{{- $globalConfigMaps := default dict $root.Values.global.configMaps -}}
+{{- $global := index $globalConfigMaps $data.globalName -}}
 {{- if not $global -}}
 {{- fail (printf "configMaps.%s.globalName references missing global.configMaps.%s" $key $data.globalName) -}}
 {{- end -}}
@@ -111,6 +140,19 @@ Falls back to a local chart-managed configMap if no global alias is set.
 {{- include "stdapp.configMap.resourceName" (dict "root" $root "key" $data.globalName) -}}
 {{- else -}}
 {{- include "stdapp.configMap.resourceName" (dict "root" $root "key" $key) -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Check if a global Vault static secret is referenced by any enabled local vault static secret entry
+*/}}
+{{- define "stdapp.vaultStaticSecret.isReferenced" -}}
+{{- $root := .root -}}
+{{- $globalName := .globalName -}}
+{{- range $key, $value := $root.Values.vault.staticSecrets -}}
+{{- if and $value.enabled (eq $value.globalName $globalName) -}}
+"true"
+{{- end -}}
 {{- end -}}
 {{- end -}}
 
