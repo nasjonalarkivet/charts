@@ -5,29 +5,20 @@
     push:
       branches:
         - main
+      paths:
+        - 'helm/**'
 
   jobs:
-    release:
+    dispatch-release:
       permissions:
         contents: write
-      runs-on: static-runner
+      runs-on: ubuntu-latest
       steps:
-        - name: Checkout
-          uses: actions/checkout@v6.0.2
+        - name: Dispatch charts-release workflow
+          uses: peter-evans/repository-dispatch@v3
           with:
-            fetch-depth: 0
-        - name: Configure Git
-          run: |
-            git config user.name "$GITHUB_ACTOR"
-            git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
-        - name: Setup helm
-          uses: azure/setup-helm@v5.0.0
-          with:
-            version: 'latest'
-          id: install
-        - name: Run chart-releaser
-          uses: helm/chart-releaser-action@v1.7.0
-          with:
-            charts_dir: helm
-          env:
-            CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+            token: ${{ secrets.CHARTS_RELEASE_TOKEN }}
+            repository: nasjonalarkivet/charts-release
+            event-type: helm_release
+            client-payload: >-
+              {"repo":"${{ github.repository }}","ref":"${{ github.sha }}"}
