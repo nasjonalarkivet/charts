@@ -266,3 +266,19 @@ serviceAccount:
   create: False
   name: ""
   annotations: {}
+
+#networkpolicies aka firewall rules for inbound/outbound traffic
+netpol:
+  enabled: False
+  allowSameNSIngress: True
+  ingressRules:
+    platformTrust:
+      enabled: False
+      ports:
+      # opens only the named http port
+      - port: http
+        protocol: TCP
+      allowNamespaces:
+      - "ingress-nginx"
+      - "external-ingress-nginx"
+      - "monitoring"

@@ -203,3 +203,9 @@ serviceAccount:
   enabled: true
   create: true
   name: sa-name
+
+netpol:
+  enabled: True
+  ingressRules:
+    platformTrust:
+      enabled: True

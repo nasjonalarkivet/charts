@@ -1,0 +1,38 @@
+{{- if .Values.netpol.enabled }}
+{{- $root := . }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "stdapp.fullname" . }}
+  labels:
+    {{- include "stdapp.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "stdapp.selectorLabels" . | nindent 6 }}
+  ingress:
+  {{- if .Values.netpol.allowSameNSIngress }}
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: {{ .Release.Namespace }}
+  {{- end }}
+  {{- range $name, $rule := .Values.netpol.ingressRules }}
+  {{- if $rule.enabled }}
+  - from:
+    {{- with $rule.allowNamespaces }}
+    - namespaceSelector:
+        matchExpressions:
+        - key: "kubernetes.io/metadata.name"
+          operator: In
+          values: {{ . | toJson }}
+    {{- end }}
+    {{- with $rule.ports }}
+    ports:
+      {{ . | toYaml | nindent 6 }}
+    {{- end }}
+  {{- end }}
+  {{- end }}
+  policyTypes:
+  - Ingress
+{{- end }}
